@@ -1,0 +1,263 @@
+Choose Spring Initializr > Project SDK as 1.8 or 11 or 14 > Make sure that Default https://start.spring.io is choosen > 
+Group : com.edureka.springco > Artifcat: Any name > Type : Gradle Project > Java version : 8
+
+ 10/23
+https://learnxinyminutes.com/docs/yaml/
+
+
+spring boot dependencies
+
+A: implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.h2database:h2'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+	
+	
+	compoite keys:
+	
+	https://www.baeldung.com/jpa-composite-primary-keys
+	
+	
+	 https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#reference
+	 
+	 
+	 to test:
+	 
+	 curl -X POST \
+  http://127.0.0.1:8081/product \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Postman-Token: 08da7bfe-c4ed-413e-9d31-28027bef8544' \
+  -H 'cache-control: no-cache' \
+  -d '{
+    "name" : "SamsungS8",
+    "description" : "Samsung 8 , Amoled Screen Mobile Phone"
+}'
+
+https://www.postman.com/downloads/
+
+product service json
+
+{ 
+    
+    "name" : "SamsungS9",
+    "description" : "Samsung 9 , Amoled Screen Mobile Phone"
+}
+
+order service postman json:
+
+{
+    "name":"SamsungS8",
+    "description" : "Samsung 8 , Amoled Screen Mobile Phone",
+    "userId": "45",
+    "address":"Edureka Office",
+    "quantity": "4"
+}
+
+
+integration with local host:
+
+
+ResponseEntity<Boolean> forEntity = restTemplate.getForEntity("http://product-service/product?name=" + orderEntity.getName(), Boolean.class);
+
+
+include these cloud dependecies to orderservice and productservice
+the first one is the version
+ext {
+    set('springCloudVersion', "Hoxton.SR8")
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+application.yml for discovery:
+
+server:
+  port: 8761
+spring:
+  application:
+    name: discovery-server
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+	
+	zuul gateway
+	
+	tracing dependeicies :
+	
+	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
+	
+	download zipkin
+	https://zipkin.io/pages/quickstart.html
+	localhost:9411
+	
+	
+	https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html
+	https://kafka.apache.org/documentation/#quickstart
+	
+	
+	zookeeper-server-start.bat  ..\..\config\zookeeper.properties
+	
+	kafka-console-consumer.bat --topic t.spring.training --bootstrap-server localhost:9092
+	
+	
+	https://www.baeldung.com/spring-kafka - most spring concepts
+	
+	sanjeev.knex@gmail.com
+	
+	
+	
+	
+	senderConfig
+	
+	A: package com.edureka.spring.kafkaintegration.producer;
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class SenderConfig {
+    @Value("${kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    @Bean
+    public Map<String, Object> producerConfigs() {
+        Map<String, Object> props = new HashMap<>();
+        // list of host:port pairs used for establishing the initial connections to the Kakfa cluster
+        props.put(ProducerConfig
+                        .BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapServers);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class);
+        return props;
+    }
+    @Bean
+    public ProducerFactory<String, String> producerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+    @Bean
+    public KafkaTemplate<String, String> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+    @Bean
+    public Producer producer() {
+        return new Producer();
+		}
+		}
+   -----------------------------
+   
+   package com.edureka.spring.kafkaintegration.consumer;
+
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+@EnableKafka
+public class ReceiverConfig {
+
+    @Value("${kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    @Bean
+    public Map<String, Object> consumerConfigs() {
+        Map<String, Object> props = new HashMap<>();
+        // list of host:port pairs used for establishing the initial connections to the Kafka cluster
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapServers);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class);
+        // allows a pool of processes to divide the work of consuming and processing records
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "spring.training");
+        // automatically reset the offset to the earliest offset
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        return props;
+    }
+
+    @Bean
+    public ConsumerFactory<String, String> consumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
+    }
+
+    @Bean
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+
+        return factory;
+    }
+
+    @Bean
+    public Consumer consumer() {
+        return new Consumer();
+    }
+}
+
+
+-------
+
+https://docs.docker.com/engine/install/ 
+
+https://www.techrepublic.com/article/how-to-deploy-and-use-a-mysql-docker-container/
+
+
+password:NIBodHAg9UcUqAHUs@ByS]egiz7 changed to password
+
+
+dockerfile
+
+FROM openjdk:alpine
+COPY build/libs/product-service-0.0.1-SNAPSHOT.jar /usr/scr/product-service.jar
+EXPOSE 8081
+CMD java -jar /usr/scr/product-service.jar
+
+docker build -t sanjeevblr1/product-service:v1 .
+
+
+docker run -d -p 8081:8081 sanjeevblr1/product-service:v1
+
+
+oauth
+
+https://spring.io/guides/tutorials/spring-boot-oauth2/
+
+
+ sanjeev.knex@gmail.com
+
