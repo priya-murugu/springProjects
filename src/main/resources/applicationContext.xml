@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="carObj" class="com.priya.session1.myfirstspring.Model.Car" >
+        <property name = "name" value="Honda"/>
+        <property name="modelNo" value="2020"/>
+    </bean>
+
+    <bean id="Person" class="com.priya.session1.myfirstspring.Model.Person">
+        <property name = "name" value="Priya"/>
+        <property name="car" ref = "carObj"/>
+    </bean>
+    <bean id="db" class ="com.priya.session1.myfirstspring.Model.Databases" init-method="init" destroy-method="destroy">
+        <property name="dbs">
+            <list>
+                <value>hbase</value>
+                <value>cassandra</value>
+            </list>
+        </property>
+    </bean>
+</beans>

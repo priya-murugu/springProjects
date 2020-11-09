@@ -1,0 +1,6 @@
+rootProject.name = 'my-first-spring'
+include 'productservice'
+include 'orderservice'
+include 'discovery-server'
+include 'edge-service'
+include 'kafka-integration'
